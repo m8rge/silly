@@ -14,6 +14,8 @@ class Command extends \Symfony\Component\Console\Command\Command
      * @param string $description                   Description of the command.
      * @param array  $argumentAndOptionDescriptions Descriptions of the arguments and options.
      *
+     * @return $this
+     *
      * @api
      */
     public function descriptions($description, array $argumentAndOptionDescriptions = [])
@@ -30,6 +32,8 @@ class Command extends \Symfony\Component\Console\Command\Command
                 $this->setArgumentDescription($definition, $name, $value);
             }
         }
+
+        return $this;
     }
 
     /**
@@ -46,8 +50,14 @@ class Command extends \Symfony\Component\Console\Command\Command
         $definition = $this->getDefinition();
 
         foreach ($argumentDefaults as $name => $default) {
-            $argument = $definition->getArgument($name);
-            $argument->setDefault($default);
+            if (strpos($name, '--') === 0) {
+                $name = substr($name, 2);
+                $argument = $definition->getArgument($name);
+                $argument->setDefault($default);
+            } else {
+                $option = $definition->getOption($name);
+                $option->setDefault($default);
+            }
         }
 
         return $this;
@@ -63,9 +73,9 @@ class Command extends \Symfony\Component\Console\Command\Command
 
     private function setOptionDescription(InputDefinition $definition, $name, $description)
     {
-        $argument = $definition->getOption($name);
-        if ($argument instanceof InputOption) {
-            $argument->setDescription($description);
+        $option = $definition->getOption($name);
+        if ($option instanceof InputOption) {
+            $option->setDescription($description);
         }
     }
 }
